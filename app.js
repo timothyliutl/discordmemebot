@@ -1,5 +1,13 @@
 require('dotenv').config()
 
+//instagram setup
+const Instagram = require('instagram-web-api')
+const instagramClient = new Instagram({username:"test.apiaccount", password:process.env.INSTAGRAMPASSWORD})
+instagramClient.login().catch((err)=>{
+    console.log(err)
+})
+
+
 
 //database set up
 const { MongoClient } = require('mongodb');
@@ -21,7 +29,13 @@ var MemeSchema = new Schema({
     messagetext: String,
     timeposted: Date,
     messageID: String,
-    userID: String
+    userID: String,
+    upvotes: [String]
+})
+
+var PostedSchema = new Schema({
+    attachmentname: String,
+    upvotes:[String]
 })
 
 var MemeModel = mongoose.model('MemeModel', MemeSchema);
@@ -29,7 +43,8 @@ var MemeModel = mongoose.model('MemeModel', MemeSchema);
 
 //discord stuff
 const token = process.env.KEY
-const { Client, Intents } = require('discord.js');
+
+const { Client, Intents, Permissions} = require('discord.js');
 const { connect } = require('http2');
 const { stringify } = require('querystring');
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS]})
@@ -38,6 +53,9 @@ client.login(token).catch(function(err){
     console.log(err)
 })
 client.on('messageCreate', (message)=>{
+    if(message.channelId!="893603222084800542"){
+        return
+    }
     if(message.author.bot){
         return false;
     }
@@ -60,8 +78,8 @@ client.on('messageCreate', (message)=>{
 
         for(let [key, value] of message.attachments){
             let fileExt = value.attachment.split('.').at(-1);
-            if(fileExt!="png"&&fileExt!="jpg"&&fileExt!="mp4"){
-                message.reply("Invalid file type! Please upload images or videos only")
+            if(fileExt!="jpg"&&fileExt!="mp4"){
+                message.reply("Invalid file type! Only JPG and MP4 are allowed.")
                 return;
             }
             var today = new Date()
@@ -73,7 +91,8 @@ client.on('messageCreate', (message)=>{
                 messagetext: message.content.split("meme:").pop(),
                 timeposted: today,
                 messageID: message.id,
-                userID: message.author.id
+                userID: message.author.id,
+                upvotes:[]
             })
         }
         console.log(attachments[0]);
@@ -84,8 +103,28 @@ client.on('messageCreate', (message)=>{
                     console.log(doc)
                 }
             });
-            
+         message.reply("Meme Recieved! Awaiting admin approval.")
+
+        const reactionFilter = (reaction, user)=>{
+            console.log(user)
+            return (reaction.emoji.name === '🍎'&&user.id=="475134799581937674")
         }
+
+        const reactionCollector = message.createReactionCollector({filter: reactionFilter, max: 1})
+        reactionCollector.on('collect', (reaction, user)=>{
+            //incase we want to have a democracy again
+        })
+        reactionCollector.on('end', (reaction,user)=>{
+            message.reply("Meme has been approved")
+            instagramClient.uploadPhoto({photo:attachments[0].attachmenturl, caption:attachments[0].messagetext, post:'feed'}).catch((err)=>{
+                console.log(err)
+            })
+        })
+         
+         
+        }
+
+        //just to test out the photo upload ability
         
     }
 
