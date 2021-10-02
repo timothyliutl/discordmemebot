@@ -1,8 +1,9 @@
 require('dotenv').config()
 
 //instagram setup
+
 const Instagram = require('instagram-web-api')
-const instagramClient = new Instagram({username:"test.apiaccount", password:process.env.INSTAGRAMPASSWORD})
+const instagramClient = new Instagram({username:"applememes23", password:process.env.INSTAGRAMPASSWORD})
 instagramClient.login().catch((err)=>{
     console.log(err)
 })
@@ -39,6 +40,8 @@ var PostedSchema = new Schema({
 })
 
 var MemeModel = mongoose.model('MemeModel', MemeSchema);
+var PostedModel = mongoose.model("PostedModel", PostedSchema);
+
 
 
 //discord stuff
@@ -106,8 +109,19 @@ client.on('messageCreate', (message)=>{
          message.reply("Meme Recieved! Awaiting admin approval.")
 
         const reactionFilter = (reaction, user)=>{
-            console.log(user)
-            return (reaction.emoji.name === '🍎'&&user.id=="475134799581937674")
+            const adminList = message.guild.roles.cache.get("893720969435283466").members.map(m=>m.user.id)
+            
+            console.log(adminList)
+            var document2 = new PostedModel({
+                attachmentname: attachments[0].attachmenturl,
+                upvotes: [user.id]
+            })
+            document2.save((err,doc)=>{
+                if(err){
+                    console.log(doc)
+                }
+            })
+            return (reaction.emoji.name === '🍎'&& adminList.includes(user.id))
         }
 
         const reactionCollector = message.createReactionCollector({filter: reactionFilter, max: 1})
@@ -116,9 +130,11 @@ client.on('messageCreate', (message)=>{
         })
         reactionCollector.on('end', (reaction,user)=>{
             message.reply("Meme has been approved")
+
             instagramClient.uploadPhoto({photo:attachments[0].attachmenturl, caption:attachments[0].messagetext, post:'feed'}).catch((err)=>{
                 console.log(err)
             })
+            
         })
          
          
