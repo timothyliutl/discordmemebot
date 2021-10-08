@@ -130,8 +130,14 @@ client.on('messageCreate', (message)=>{
         })
         reactionCollector.on('end', (reaction,user)=>{
             message.reply("Meme has been approved")
+            tempattach = ""
+            for(i in attachments){
+                if(message.id == i.messageID){
+                    tempattach = i
 
-            instagramClient.uploadPhoto({photo:attachments[0].attachmenturl, caption:attachments[0].messagetext, post:'feed'}).catch((err)=>{
+                }
+            }
+            instagramClient.uploadPhoto({photo:tempattach.attachmenturl, caption:tempattach.messagetext, post:'feed'}).catch((err)=>{
                 console.log(err)
             })
             
