@@ -72,9 +72,9 @@ client.on('messageCreate', (message)=>{
     }
 
     if(message.attachments.size>0){
-        if(!message.content.toUpperCase().includes("MEME:")){
-            return;
-        }
+        //if(!message.content.toUpperCase().includes("MEME:")){
+        //    return;
+        //}
 
 
         attachments = []
@@ -130,7 +130,7 @@ client.on('messageCreate', (message)=>{
         })
         reactionCollector.on('end', (reaction,user)=>{
             message.reply("Meme has been approved")
-            instagramClient.uploadPhoto({photo:message.attachments.values().next().value.attachment, caption:message.content.split("meme:").pop(), post:'feed'}).catch((err)=>{
+            instagramClient.uploadPhoto({photo:message.attachments.values().next().value.attachment, caption:message.content, post:'feed'}).catch((err)=>{
                 console.log(err)
             })
             
