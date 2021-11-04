@@ -81,7 +81,7 @@ client.on('messageCreate', (message)=>{
 
         for(let [key, value] of message.attachments){
             let fileExt = value.attachment.split('.').at(-1);
-            if(fileExt!="jpg"&&fileExt!="mp4"){
+            if(!(fileExt=="jpg"||fileExt=="jpeg")&&fileExt!="mp4"){
                 message.reply("Invalid file type! Only JPG and MP4 are allowed.")
                 return;
             }
